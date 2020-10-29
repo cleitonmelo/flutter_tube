@@ -8,6 +8,9 @@ import 'package:google_fonts/google_fonts.dart';
 class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+
+    final videosBloc = BlocProvider.of<VideoBloc>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Container(
@@ -30,21 +33,32 @@ class Home extends StatelessWidget {
             onPressed: () async {
               String result = await showSearch(context: context, delegate: Search());
               if(result != null){
-                BlocProvider.of<VideoBloc>(context).inSearch.add(result);
+                videosBloc.inSearch.add(result);
               }
             },
           )
         ],
       ),
       body: StreamBuilder(
-          stream: BlocProvider.of<VideoBloc>(context).outVideos,
+          stream: videosBloc.outVideos,
           builder: (context, snapshot){
             if(snapshot.hasData){
               return ListView.builder(
                   itemBuilder: (context, index) {
-                    return VideoTile(video: snapshot.data[index]);
+                    if(index < snapshot.data.length){
+                      return VideoTile(video: snapshot.data[index]);
+                    }
+                    videosBloc.inSearch.add(null);
+                    return Container(
+                      height: 40,
+                      width: 40,
+                      alignment: Alignment.center,
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.redAccent),
+                      ),
+                    );
                   },
-                  itemCount: snapshot.data.length,
+                  itemCount: snapshot.data.length + 1,
               );
             }
             return Container();
